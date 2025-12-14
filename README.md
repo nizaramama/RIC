@@ -40,6 +40,15 @@ The provided code allows recomputation of:
 - Correlation analysis
 - Regression models
 - Figures reported in the paper
+ 
+## Figures
+
+All figures used in the paper are available in the `figures/` directory:
+- Model comparison
+- Correlation analysis
+- Scatter plots
+- Distribution analysis
+- Summary table
 
 ## 📜 License
 
