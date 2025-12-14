@@ -33,7 +33,7 @@ Email: amamanizar@gmail.com
 
 \maketitle
 
-\textbf{Preprint:} \href{https://doi.org/10.5281/zenodo.17925892}{DOI: 10.5281/zenodo.17925892}
+\textbf{Preprint:} \href{https://doi.org/10.5281/zenodo.17925892}
 
 \begin{abstract}
 Predicting the computational hardness of SAT instances remains a fundamental challenge in automated reasoning. While structural measures such as treewidth have shown promise, they often fail to capture the full complexity of instance difficulty. We introduce \textbf{Reflective Information Complexity (RIC)}, a measure that combines an information-theoretic proxy for solution description with a proof-theoretic proxy derived from solver dynamics, approximating the information required to ``reflect'' a solution back to the input formula.
@@ -351,14 +351,14 @@ Figure~\ref{fig:models} summarizes model performance, and Figure~\ref{fig:correl
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.48\textwidth]{fig1_models.png}
+\includegraphics[width=0.48\textwidth]{figures/fig1_models.png}
 \caption{Model performance comparison. Combined TW+RIC achieves $R^2=35.36\%$ on random instances (+39.8\% improvement over treewidth alone).}
 \label{fig:models}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.48\textwidth]{fig2_correlation.png}
+\includegraphics[width=0.48\textwidth]{figures/fig2_models.png}
 \caption{RIC-Treewidth independence. Ultra-low correlation: $\rho=-0.218$ (random), $\rho=+0.110$ (crafted). Both far below typical structural measure correlations ($\rho > 0.95$).}
 \label{fig:correlation}
 \end{figure}
@@ -410,14 +410,14 @@ TW + RIC       & \textbf{87.86\%} & +66.6\% \\
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.9\textwidth]{fig3_scatter.png}
+\includegraphics[width=0.48\textwidth]{figures/fig3_models.png}
 \caption{RIC vs Treewidth scatter plots. Left: Random instances ($n=653$) showing wide RIC variance for similar treewidth values, confirming independence ($\rho=-0.218$). Right: Crafted instances ($n=10$, qualitative) spanning two orders of magnitude in RIC despite low treewidth.}
 \label{fig:scatter}
 \end{figure*}
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.9\textwidth]{fig4_distribution.png}
+\includegraphics[width=0.48\textwidth]{figures/fig4_models.png}
 \caption{RIC distribution by category. Left: Random instances show approximately normal distribution (range=1,824 bits). Right: Crafted instances exhibit wide variance (range=33,081 bits, over 2 orders of magnitude), reflecting diverse proof-theoretic complexity.}
 \label{fig:distribution}
 \end{figure*}
