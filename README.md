@@ -1,61 +1,60 @@
-# Reflective Information Complexity (RIC)
+# RIC: A Solver-Observable Proxy for Proof-Theoretic SAT Hardness
 
-**Reflective Information Complexity (RIC)** is an information–proof-theoretic measure
-designed to capture SAT instance hardness beyond purely structural metrics
-such as treewidth.
+**Author:** Nizar Amama  
+**ORCID:** 0009-0004-6721-1117  
+**DOI (Zenodo):** https://doi.org/10.5281/zenodo.17925892  
 
-RIC combines:
-- Time-bounded Kolmogorov complexity (solution compressibility)
-- Proof-search dynamics (conflicts, propagations, decisions)
-- Phase-aware normalization
+---
 
-## 📄 Paper
+## Overview
 
-- **Title:** Reflective Information Complexity: A Proof-Theoretic Complement to Structural SAT Hardness Prediction
-- **Author:** Nizar Amama
-- **Preprint (Zenodo DOI):** https://zenodo.org/records/17925892
-- **arXiv:** (pending endorsement)
+This repository contains the paper and supplementary material for:
 
-PDF available in `paper/`.
+> **RIC (Resolution Information Complexity): A Solver-Observable Proxy for
+> Proof-Theoretic SAT Hardness**
 
-## 📊 Key Findings
+RIC is an **empirical, solver-observable proxy** designed to approximate
+proof-theoretic hardness in SAT instances using:
+- Compression-based approximations to time-bounded Kolmogorov complexity
+- CDCL solver dynamics (conflicts, propagations, decisions)
 
-- Ultra-low correlation with treewidth (ρ ≈ -0.22)
-- Standalone predictive power (R² ≈ 14%)
-- Strong complementarity with treewidth (+39.8% improvement)
-- Sensitivity to proof-hard instances (PHP, Parity)
+RIC is **not a formal complexity measure**.  
+It is a **foundation contribution** demonstrating that proof-theoretic
+information constitutes a dimension *orthogonal* to structural SAT measures
+(e.g., treewidth).
 
-## 📁 Repository Structure
+---
 
-- `paper/` — manuscript PDF and LaTeX
-- `figures/` — plots used in the paper
-- `code/` — RIC computation and analysis scripts
-- `data/` — experimental results (CSV)
-- `docs/` — methodology notes
+## Key Findings
 
-## 🧪 Reproducibility
+- Ultra-low correlation with treewidth: ρ = -0.218 (n = 653)
+- Standalone predictive power: R² = 13.90%
+- Combined with treewidth: +39.8% improvement in R²
+- Demonstrates an empirical orthogonal dimension of SAT hardness
 
-The provided code allows recomputation of:
-- RIC values
-- Correlation analysis
-- Regression models
-- Figures reported in the paper
- 
-## Figures
+---
 
-All figures used in the paper are available in the `figures/` directory:
-- Model comparison
-- Correlation analysis
-- Scatter plots
-- Distribution analysis
-- Summary table
+## Epistemic Positioning
 
-## 📜 License
+- **What RIC is:**  
+  A solver-observable *proxy* for proof-theoretic hardness.
 
-MIT License (code)  
-Paper © 2025 Nizar Amama
+- **What RIC is not:**  
+  A formal complexity measure or a proof-theoretic invariant.
 
-## 📬 Contact
+Current experiments focus on **satisfiable (SAT)** instances.
+Extension to **UNSAT + DRAT proof analysis** is ongoing future work.
 
-- Email: amamanizar@gmail.com
-- ORCID: 0009-0004-6721-1117
+---
+
+## Files
+
+- `RIC_SAT_Paper_v2.pdf` — revised paper (proxy positioning)
+- `paper/` — LaTeX sources (if applicable)
+- `figures/` — figures used in the paper
+
+---
+
+## Citation
+
+If you use this work, please cite it via the Zenodo DOI.
