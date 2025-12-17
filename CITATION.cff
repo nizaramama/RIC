@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "RIC: A Solver-Observable Proxy for Proof-Theoretic SAT Hardness"
+message: "If you use this work, please cite it."
+authors:
+  - family-names: "Amama"
+    given-names: "Nizar"
+    orcid: "https://orcid.org/0009-0004-6721-1117"
+doi: "10.5281/zenodo.17925892"
+license: "CC-BY-4.0"
