@@ -2,7 +2,7 @@
 
 **Version 2.0 - December 2025**
 
-[![DOI](https://doi.org/10.5281/zenodo.17970752)
+[![DOI] https://doi.org/10.5281/zenodo.17970752
 
 ---
 
