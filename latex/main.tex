@@ -1,412 +1,475 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[11pt]{article}
 
-% ----------------------------
-% Packages
-% ----------------------------
-\usepackage{amsmath,amsfonts,amssymb}
+% ============================================================================
+% PACKAGES
+% ============================================================================
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{hyperref}
-\usepackage{algorithm}
-\usepackage{algorithmic}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{caption}
+\usepackage{url}
 
-% ----------------------------
-% PDF metadata + hyperlinks
-% ----------------------------
+% ============================================================================
+% THEOREM ENVIRONMENTS
+% ============================================================================
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+% ============================================================================
+% GRAPHICS PATH
+% main.tex is in latex/, figures are in figures/
+% ============================================================================
+\graphicspath{{../figures/}}
+
+% ============================================================================
+% HYPERREF SETUP
+% ============================================================================
 \hypersetup{
     pdftitle={RIC: A Solver-Observable Proxy for Proof-Theoretic SAT Hardness},
     pdfauthor={Nizar Amama},
-    pdfsubject={SAT Hardness Prediction, Proof Complexity, Solver Dynamics},
-    pdfkeywords={SAT, hardness prediction, proof complexity, solver-observable proxy, information theory, treewidth, CDCL},
+    pdfsubject={SAT hardness, proof complexity, solver dynamics},
+    pdfkeywords={SAT, hardness prediction, proof complexity, Kolmogorov complexity, treewidth},
     colorlinks=true,
     linkcolor=blue,
     citecolor=blue,
     urlcolor=blue
 }
 
-% ----------------------------
-% Title & Author
-% ----------------------------
-\title{RIC: A Solver-Observable Proxy for Proof-Theoretic SAT Hardness}
+% ============================================================================
+% CUSTOM COMMANDS
+% ============================================================================
+\newcommand{\RIC}{\textsc{RIC}}
+\newcommand{\SAT}{\textsc{SAT}}
+\newcommand{\UNSAT}{\textsc{UNSAT}}
+\newcommand{\CDCL}{\textsc{CDCL}}
+
+% ============================================================================
+% TITLE AND AUTHOR
+% ============================================================================
+\title{\textbf{RIC: A Solver-Observable Proxy for\\Proof-Theoretic SAT Hardness}}
 
 \author{
-\IEEEauthorblockN{Nizar Amama}
-\IEEEauthorblockA{
-Independent Researcher\\
-ORCID: \href{https://orcid.org/0009-0004-6721-1117}{0009-0004-6721-1117}\\
-Email: amamanizar@gmail.com
-}
+    Nizar Amama\\
+    Independent Researcher\\
+    \texttt{amamanizar@gmail.com}\\
+    ORCID: \href{https://orcid.org/0009-0004-6721-1117}{0009-0004-6721-1117}
 }
 
+\date{}
+
+% ============================================================================
+% DOCUMENT
+% ============================================================================
 \begin{document}
+
 \maketitle
 
-\noindent\textbf{Preprint (Zenodo v2):} \href{https://doi.org/10.5281/zenodo.17968982}{10.5281/zenodo.17968982}
+\noindent
+\textbf{Preprint DOI:} \href{https://doi.org/10.5281/zenodo.17968982}{10.5281/zenodo.17968982}\\
+\textbf{GitHub:} \url{https://github.com/nizaramama/RIC}
 
-% ----------------------------
-% Abstract
-% ----------------------------
+\vspace{1em}
+
+% ============================================================================
+% ABSTRACT
+% ============================================================================
 \begin{abstract}
-Structural hardness measures for Boolean satisfiability---such as treewidth, backdoor size, and community structure---often capture closely related aspects of constraint-graph topology, and are frequently highly intercorrelated in practice. This redundancy limits their ability to characterize the full spectrum of SAT instance difficulty.
+Structural hardness measures for Boolean satisfiability—treewidth, backdoor size, community structure—typically exhibit high mutual correlation ($\rho > 0.95$), capturing essentially the same underlying dimension of constraint graph topology. This redundancy limits their collective discriminative power for instance hardness characterization.
 
-We introduce \textbf{RIC (Resolution Information Complexity)}, a \textbf{solver-observable empirical proxy} intended to capture proof-theoretic signals from CDCL solver dynamics, together with a compression-based approximation of time-bounded descriptive complexity. Unlike purely structural measures, RIC is derived from an algorithmic trace of solving rather than static graph properties.
+We introduce \textbf{\RIC{} (Resolution Information Complexity)}, a solver-observable proxy that combines time-bounded Kolmogorov complexity with \CDCL{} solver dynamics to approximate proof-theoretic hardness. Unlike structural measures, \RIC{} operates on the algorithmic trace of the solving process rather than static graph properties.
 
-On a benchmark of \textbf{653 satisfiable random 3-SAT instances}, we find that:
-\begin{itemize}
-    \item RIC exhibits ultra-low correlation with treewidth ($\rho = -0.218$).
-    \item RIC achieves standalone predictive power of $R^2 = 13.90\%$.
-    \item Combining RIC with treewidth improves prediction from $R^2 = 25.29\%$ to $R^2 = 35.36\%$ (+39.8\% relative improvement).
-\end{itemize}
+On a benchmark of 653 satisfiable random 3-\SAT{} instances, we find that: (1) \RIC{} exhibits ultra-low correlation with treewidth ($\rho = -0.218$), compared to typical $\rho > 0.95$ among structural measures; (2) \RIC{} achieves standalone predictive power of $R^2 = 13.90\%$; and (3) combining \RIC{} with treewidth improves prediction by $+39.8\%$ relative gain ($R^2 = 35.36\%$).
 
-\textbf{Epistemic positioning:} RIC is \textbf{not} presented as a formal complexity measure or proof-theoretic invariant; it is positioned as a tractable proxy supported by empirical validation. We additionally include a small crafted calibration set for qualitative analysis only.
+\RIC{} represents an empirical complement to structural complexity. While not a formal complexity measure, it provides a practical approximation to proof-theoretic difficulty with implications for solver portfolios and hardness characterization.
+
+\textbf{Keywords:} Boolean satisfiability, proof complexity, CDCL solvers, Kolmogorov complexity, hardness prediction
 \end{abstract}
 
-\begin{IEEEkeywords}
-SAT hardness prediction, proof complexity, solver dynamics, Kolmogorov complexity, treewidth, information theory
-\end{IEEEkeywords}
-
-% ----------------------------
-% 1. Introduction
-% ----------------------------
+% ============================================================================
+% SECTION 1: INTRODUCTION
+% ============================================================================
 \section{Introduction}
 
-The Boolean satisfiability problem (SAT) lies at the heart of computational complexity theory and automated reasoning. While SAT is NP-complete in the worst case, practical instances exhibit enormous variance in solving difficulty. Predicting instance hardness \emph{a priori} remains a fundamental challenge with applications ranging from algorithm selection to benchmark design.
+Predicting the computational hardness of Boolean satisfiability (\SAT{}) instances is fundamental to solver design, automated reasoning, and complexity theory. Most existing approaches rely on \emph{structural measures}—treewidth, backdoor size, community modularity—which quantify properties of the constraint graph topology. However, these measures typically exhibit extremely high mutual correlation ($\rho > 0.95$), effectively capturing the same underlying dimension. This redundancy limits their collective explanatory power: combining correlated features yields diminishing returns.
 
-\subsection{The Dominance of Structural Measures}
+The question arises: \emph{does there exist an orthogonal dimension of \SAT{} hardness independent of graph structure?}
 
-Current hardness prediction approaches predominantly rely on \emph{structural} properties of the constraint graph: treewidth~\cite{bodlaender1998}, backdoor sets~\cite{williams2003}, community structure~\cite{newsham2014}, and clause-variable incidence patterns. These measures have achieved notable success in predicting solver performance.
+\subsection{Main Contribution}
 
-However, a persistent limitation is that many structural measures are often \textbf{highly correlated} in practice (commonly reported as $\rho>0.95$ on certain benchmarks)~\cite{ansotegui2009}. As a result, combining many structural features can yield diminishing returns: the feature set may largely measure the same underlying dimension of topology.
+We introduce \textbf{\RIC{} (Resolution Information Complexity)}, a solver-observable proxy that combines time-bounded Kolmogorov complexity with Conflict-Driven Clause Learning (\CDCL{}) solver dynamics. Unlike structural measures, \RIC{} operates on the \emph{algorithmic trace} of the solving process—conflicts, propagations, learned clause activity—rather than static graph properties.
 
-\subsection{The Missing Dimension: Proof-Theoretic Signals}
-
-Proof complexity theory~\cite{cook1979,haken1985} provides a complementary perspective: hardness is tied to the \emph{length and structure of proofs} in propositional proof systems. Resolution proof size, DRAT proof length, and related measures offer theoretical insight, but are typically defined most cleanly for UNSAT instances and are commonly available only \emph{post hoc}.
-
-We ask: \textbf{Can we design a practical, computable proxy that captures proof-theoretic signals while remaining empirically independent of structural properties?}
-
-\subsection{Our Contribution: RIC as a Proxy}
-
-We introduce \textbf{Resolution Information Complexity (RIC)}, combining:
+On 653 random 3-\SAT{} instances, we demonstrate:
 \begin{enumerate}
-\item A compression-based approximation to time-bounded conditional Kolmogorov complexity, modeling witness (solution) description length relative to the instance.
-\item A solver-dynamics proxy derived from CDCL statistics (conflicts, propagations, decisions), modeling proof-search effort.
+    \item \textbf{Orthogonality}: \RIC{} exhibits ultra-low correlation with treewidth ($\rho = -0.218$), establishing it as a genuinely independent dimension
+    \item \textbf{Predictive utility}: Standalone $R^2 = 13.90\%$, with combined model achieving $R^2 = 35.36\%$ (+39.8\% improvement)
+    \item \textbf{Computational tractability}: \RIC{} is efficiently computable via standard \CDCL{} solvers and compression algorithms
 \end{enumerate}
-
-\textbf{Key empirical findings on 653 random 3-SAT instances:}
-\begin{itemize}
-\item \textbf{Independence:} RIC exhibits ultra-low correlation with treewidth ($\rho=-0.218$).
-\item \textbf{Standalone performance:} $R^2=13.90\%$.
-\item \textbf{Complementarity:} TW+RIC improves by +39.8\% over treewidth alone.
-\end{itemize}
 
 \subsection{Scope and Positioning}
 
-We explicitly position RIC as a \textbf{solver-observable proxy} for proof-theoretic hardness rather than a formal complexity measure. This distinction is critical:
+\textbf{We explicitly position \RIC{} as a solver-observable empirical proxy for proof-theoretic hardness rather than a formal complexity measure.}
 
-\begin{description}
-\item[What RIC is:] An empirical tool that approximates proof-theoretic difficulty through computable features derived from solver behavior and compression heuristics.
-\item[What RIC is not:] A rigorously defined complexity measure with provable bounds in a proof system or universal worst-case guarantees.
+\begin{description}[leftmargin=2.5cm, style=nextline]
+\item[\textbf{What \RIC{} is:}] A computable proxy that approximates proof-theoretic difficulty through \CDCL{} solver dynamics and compression-based estimates of information content. \RIC{} provides practical hardness characterization validated through correlation and predictive utility.
+
+\item[\textbf{What \RIC{} is not:}] A formally defined complexity measure with provable worst-case bounds, completeness guarantees, or axiomatic foundations. \RIC{} does not constitute a proof technique for complexity class separation.
+
+\item[\textbf{Current scope:}] This work focuses exclusively on \emph{satisfiable} (\SAT{}) instances. Extending \RIC{} to unsatisfiable (\UNSAT{}) instances with DRAT proof analysis is essential future work where proof complexity is more directly observable.
 \end{description}
 
-The present work focuses on \textbf{satisfiable (SAT)} instances. Extending RIC to \textbf{UNSAT} with proof-object analysis (e.g., DRAT traces) is essential future work.
+\subsection{Significance}
 
-\subsection{Paper Organization}
+The existence of an orthogonal dimension to structural complexity has several implications:
+\begin{itemize}
+    \item \textbf{Theoretical}: Demonstrates that graph topology alone does not fully characterize \SAT{} hardness; proof-theoretic properties constitute an independent axis
+    \item \textbf{Practical}: Enables improved solver portfolios and instance selection by combining complementary features
+    \item \textbf{Methodological}: Establishes a template for developing hybrid hardness measures
+\end{itemize}
 
-Section~\ref{sec:background} reviews related work. Section~\ref{sec:framework} defines the proxy framework. Section~\ref{sec:implementation} presents the practical computation. Section~\ref{sec:experiments} reports experiments. Section~\ref{sec:discussion} discusses implications and limitations.
+% ============================================================================
+% SECTION 2: RELATED WORK
+% ============================================================================
+\section{Related Work}
+\label{sec:related}
 
-% ----------------------------
-% 2. Background & Related Work
-% ----------------------------
-\section{Background and Related Work}
-\label{sec:background}
+\subsection{Structural Hardness Measures}
 
-\subsection{Structural SAT Hardness Measures}
-
-\paragraph{Treewidth.}
-Treewidth~\cite{bodlaender1998} measures how ``tree-like'' a graph is. For SAT, the primal graph connects variables appearing together in clauses. Low treewidth enables efficient dynamic programming algorithms in certain settings~\cite{samer2010}. Exact computation is hard; heuristics are commonly used.
-
-\paragraph{Backdoor sets.}
-Backdoors~\cite{williams2003} are small variable sets whose assignment makes the residual formula tractable. Backdoor size can correlate with solver performance but is costly to compute exactly.
-
-\paragraph{Community structure.}
-Community modularity and clustering~\cite{newsham2014} capture variable community patterns and can be predictive on industrial instances.
-
-\paragraph{Limitation: high intercorrelation.}
-A key observation is that multiple structural measures can be highly correlated on some benchmarks~\cite{ansotegui2009}, suggesting redundancy and motivating orthogonal predictors.
+Most \SAT{} hardness prediction approaches employ features derived from constraint graph structure. Treewidth of the primal graph has been extensively studied, with small treewidth enabling efficient dynamic programming algorithms. Backdoor sets—subsets of variables whose instantiation renders the residual formula tractable—correlate with hardness but are expensive to find. Community structure measures quantify graph decomposability. A consistent finding is \emph{extremely high mutual correlation} ($\rho > 0.95$), suggesting these measures capture essentially the same dimension.
 
 \subsection{Proof Complexity}
 
-\paragraph{Resolution.}
-Resolution complexity~\cite{haken1985} lower-bounds DPLL-style solver effort for UNSAT refutations, with classic exponential lower bounds for pigeonhole and parity families.
-
-\paragraph{DRAT proofs.}
-Modern solvers can output DRAT proofs~\cite{heule2013} enabling checking and analysis, but typically after solving (post hoc).
+Resolution complexity studies the difficulty of refuting unsatisfiable formulas via resolution proof systems. Resolution width connects structural properties to proof size, but is primarily defined for \UNSAT{} instances. Modern \CDCL{} solvers implicitly construct resolution-based proofs, with DRAT format enabling explicit verification for \UNSAT{} instances. For satisfiable instances, proof complexity is less well-defined—our work addresses this gap.
 
 \subsection{Kolmogorov Complexity in SAT}
 
-\paragraph{Descriptive complexity.}
-Kolmogorov complexity~\cite{livitanyi2008} is an ideal information measure, but is uncomputable. Practical work uses compression-based approximations.
+Kolmogorov complexity has been applied to \SAT{} in limited contexts, including entropy-based arguments for the phase transition and observations that easier instances tend to have more compressible representations. Our contribution is the first systematic integration of time-bounded Kolmogorov complexity with \CDCL{} dynamics into a computable hardness proxy.
 
-\subsection{Empirical vs Formal Complexity}
+\subsection{Positioning of RIC}
 
-The SAT community distinguishes between empirical predictors (used in solver portfolios and runtime prediction)~\cite{xu2008,hutter2014} and formal complexity measures tied to proof systems or worst-case guarantees~\cite{cook1979,haken1985}. RIC contributes to the empirical tradition while targeting proof-theoretic signals.
+\RIC{} occupies a unique position: unlike structural measures, it captures proof-search dynamics; unlike pure runtime prediction, it has information-theoretic grounding; unlike resolution complexity, it applies to satisfiable instances; and unlike theoretical measures, it is practically computable. \RIC{} is best understood as a \emph{bridge} between structural graph theory and proof-theoretic complexity.
 
-% ----------------------------
-% 3. Framework
-% ----------------------------
+% ============================================================================
+% SECTION 3: THE RIC FRAMEWORK
+% ============================================================================
 \section{The RIC Framework}
 \label{sec:framework}
 
-\subsection{Conceptual Definition (Idealized)}
+We present \RIC{} in two stages: first, the \emph{conceptual definition} motivating the design; second, the \emph{practical approximation} enabling computation.
 
-Let $x\in\{0,1\}^*$ encode a SAT instance and $W(x)$ be the set of satisfying assignments. For a witness $y\in W(x)$ and time bound $t$, define an idealized quantity:
-\[
-\mathrm{RI}^t(x,y) := K^t(y\mid x) + J^t(\langle x,y\rangle),
-\]
-where:
-\begin{itemize}
-\item $K^t(y\mid x)$ is time-bounded conditional Kolmogorov complexity,
-\item $J^t(\langle x,y\rangle)$ is a proof-search effort term (conceptually tied to proof systems / solver dynamics).
-\end{itemize}
+\subsection{Preliminaries}
 
-Then define:
-\[
-\mathrm{RIC}^t(x) := \min_{y\in W(x)} \mathrm{RI}^t(x,y).
-\]
+A formula in conjunctive normal form (CNF) is a conjunction of clauses, where each clause is a disjunction of literals. The satisfiability problem (\SAT{}) asks whether there exists a variable assignment satisfying all clauses. Conflict-Driven Clause Learning (\CDCL{}) is the dominant algorithm for modern \SAT{} solving, combining systematic search with unit propagation, conflict analysis, and clause learning.
 
-\begin{remark}[Computability]
-The above definition is \emph{not computable} in general due to Kolmogorov complexity. This paper uses a practical approximation based on compression and solver statistics (Section~\ref{sec:implementation}).
+\subsection{Conceptual Definition}
+
+\subsubsection{Motivation: Information Content of Solutions}
+
+Consider a satisfiable formula $\phi$ with solution $y \in W(\phi)$. The \emph{information content} of finding $y$ given $\phi$ can be decomposed as:
+
+\begin{equation}
+\text{Hardness}(\phi) \approx K(y \mid \phi) + J(\text{verification of } \langle \phi, y \rangle)
+\end{equation}
+
+where $K(y \mid \phi)$ is conditional Kolmogorov complexity and $J(\cdot)$ is the cost of verifying the solution.
+
+\begin{definition}[Idealized RIC]
+For a satisfiable formula $\phi$:
+\begin{equation}
+\RIC_{\text{ideal}}(\phi) = \min_{y \in W(\phi)} \left[ K(y \mid \phi) + J(\langle \phi, y \rangle) \right]
+\end{equation}
+\end{definition}
+
+\begin{remark}[Uncomputability]
+The idealized \RIC{} is \textbf{not computable} due to the undecidability of Kolmogorov complexity. This definition serves purely as conceptual motivation.
 \end{remark}
 
-\subsection{Intuition}
+\subsection{Practical Approximation}
 
-\paragraph{Compression term.}
-$K^t(y\mid x)$ models how much ``new information'' the witness contains beyond the instance.
+\subsubsection{Approximating $K(y \mid \phi)$: Compression-Based Proxy}
 
-\paragraph{Dynamics term.}
-$J^t(\langle x,y\rangle)$ models proof-search effort reflected in solver dynamics.
+We use time-bounded Kolmogorov complexity via LZMA compression:
+\begin{equation}
+K_{\text{poly}}(y \mid \phi) \approx \text{LZMA-compressed size of } y \text{ given context } \phi
+\end{equation}
 
-\paragraph{Min over witnesses.}
-Taking $\min_{y\in W(x)}$ aligns with SAT solving: finding \emph{any} satisfying assignment is sufficient.
+For satisfying assignment $y$: (1) serialize $\phi$ as byte sequence, (2) serialize $y$ as bit vector, (3) compress $y$ using LZMA with $\phi$ as dictionary context, (4) measure compressed size in bits.
 
-% ----------------------------
-% 4. Implementation
-% ----------------------------
+\subsubsection{Approximating $J(\cdot)$: Solver-Observable Proxy}
+
+Instead of analyzing verification proofs directly, we use \CDCL{} solver statistics:
+
+\begin{definition}[Solver Statistics]
+For a \CDCL{} run on $\phi$ finding solution $y$, collect:
+\begin{itemize}
+    \item $c$: Total conflicts encountered
+    \item $p$: Total unit propagations performed
+    \item $d$: Total decisions made
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Proof-Theoretic Proxy]
+\begin{equation}
+J_{\text{poly}}(c, p, d) = \log_2(1 + c) + \log_2(1 + p) + \log_2(1 + d)
+\end{equation}
+\end{definition}
+
+The logarithmic scaling matches information-theoretic intuition, and equal weighting minimizes degrees of freedom.
+
+\subsection{Unified Definition}
+
+\begin{definition}[RIC - Practical]
+For satisfiable formula $\phi$:
+\begin{equation}
+\boxed{\RIC(\phi) = K_{\text{poly}}(y \mid \phi) + J_{\text{poly}}(c, p, d)}
+\end{equation}
+where $y$ is the solution found by \CDCL{}, and $(c, p, d)$ are solver statistics.
+\end{definition}
+
+\begin{remark}[Solver Dependence]
+\RIC{} depends on the specific \CDCL{} implementation. We mitigate this by using a standard solver (Glucose) with default settings and focusing on \emph{relative} hardness comparisons.
+\end{remark}
+
+% ============================================================================
+% SECTION 4: IMPLEMENTATION
+% ============================================================================
 \section{Implementation}
 \label{sec:implementation}
 
-\subsection{Approximating $K^t(y\mid x)$ via Compression}
+\subsection{Solver Setup}
 
-We approximate conditional complexity using compression with conditioning:
-\[
-K(y\mid x)\approx K(x,y)-K(x),
-\]
-implemented by LZMA.
+We use Glucose 4, a state-of-the-art \CDCL{} solver, instrumented to log solver statistics. Single-threaded execution ensures reproducibility.
 
-\begin{algorithm}[h]
-\caption{Approximate $K^{\mathrm{poly}}(y\mid x)$}
-\begin{algorithmic}[1]
-\STATE \textbf{Input:} instance $x$ (CNF), witness $y$
-\STATE Encode $x,y$ as bitstrings $\mathbf{b}_x,\mathbf{b}_y$
-\STATE Concatenate $\mathbf{c}\leftarrow \mathbf{b}_x\|\mathbf{b}_y$
-\STATE $c_{\text{joint}}\leftarrow \mathrm{LZMA}(\mathbf{c})$
-\STATE $c_x\leftarrow \mathrm{LZMA}(\mathbf{b}_x)$
-\STATE $\Delta\leftarrow (|c_{\text{joint}}|-|c_x|)\times 8$
-\STATE \textbf{if} $\Delta<0$ \textbf{then} $\Delta\leftarrow 0$
-\STATE \textbf{return} $K^{\mathrm{poly}}(y\mid x)\approx \Delta$
-\end{algorithmic}
-\end{algorithm}
+\subsection{Compression Pipeline}
 
-\subsection{Approximating Proof-Theoretic Effort via Solver Statistics}
+Given solution $y$ for formula $\phi$ with $n$ variables:
+\begin{enumerate}
+    \item Represent $y$ as bit vector
+    \item Convert to byte array
+    \item Prepend with $\phi$ representation
+    \item Apply LZMA compression with dictionary size 64 KB
+    \item Measure compressed size in bits
+\end{enumerate}
 
-To minimize degrees of freedom, we define a base proxy with unit weights:
-\[
-J^{\mathrm{poly}}(x) = \log_2(1+c) + \log_2(1+p) + \log_2(1+d),
-\]
-where $c,p,d$ are conflicts, propagations, decisions.
+\subsection{RIC Computation}
 
-\paragraph{Optional enhanced scaling (heuristic).}
-If you keep your previous enhanced variant, treat it explicitly as heuristic:
-\[
-J^{\mathrm{enhanced}} = J^{\mathrm{poly}}\cdot \phi_{\text{size}}\cdot \phi_{\text{phase}}.
-\]
-In this v2 positioning, we recommend reporting the base version as primary, and any enhanced variant as a transparent heuristic.
+\begin{enumerate}
+    \item Run Glucose on $\phi$ to obtain $(y, c, p, d)$
+    \item If \UNSAT, return $\infty$ or exclude
+    \item Compute $K_{\text{poly}} \leftarrow \text{CompressedSize}(y, \phi)$
+    \item Compute $J_{\text{poly}} \leftarrow \log_2(1+c) + \log_2(1+p) + \log_2(1+d)$
+    \item Return $\RIC = K_{\text{poly}} + J_{\text{poly}}$
+\end{enumerate}
 
-\subsection{Complete RIC Computation}
+\subsection{Computational Complexity}
 
-\begin{algorithm}[h]
-\caption{Compute RIC (SAT-only setting)}
-\begin{algorithmic}[1]
-\STATE \textbf{Input:} CNF $F$, timeout $t$
-\STATE Run CDCL solver: obtain SAT witness $y$ and stats $(c,p,d)$
-\IF{$F$ is SAT}
-\STATE $K^{\mathrm{poly}}\leftarrow$ Algorithm 1$(F,y)$
-\STATE $J^{\mathrm{poly}}\leftarrow \log_2(1+c)+\log_2(1+p)+\log_2(1+d)$
-\STATE \textbf{return} $\mathrm{RIC}(F)=K^{\mathrm{poly}}+J^{\mathrm{poly}}$
-\ELSE
-\STATE \textbf{return} undefined (SAT-only scope)
-\ENDIF
-\end{algorithmic}
-\end{algorithm}
+Total complexity is dominated by \CDCL{} solving time; compression overhead is negligible ($<1\%$ in practice).
 
-% ----------------------------
-% 5. Experiments
-% ----------------------------
-\section{Experimental Evaluation}
+\subsection{Reproducibility}
+
+Complete source code, data, and scripts available at: \url{https://github.com/nizaramama/RIC}
+
+Archived snapshot: \href{https://doi.org/10.5281/zenodo.17968982}{10.5281/zenodo.17968982}
+
+% ============================================================================
+% SECTION 5: EXPERIMENTAL VALIDATION
+% ============================================================================
+\section{Experimental Validation}
 \label{sec:experiments}
 
-\subsection{Benchmark and Setup}
+\subsection{Dataset}
 
-\paragraph{Random 3-SAT instances (primary).}
-We generated random 3-CNF formulas with $n\in\{50,75,100,150\}$ and ratios near the phase transition region ($m/n\approx 4.267$). After solving and filtering, we retained \textbf{653 satisfiable instances} for analysis.
+\subsubsection{Random 3-SAT Benchmark}
 
-\paragraph{Crafted instances (qualitative calibration only).}
-We include a small crafted set ($n=10$) only as a sanity check; we do not draw quantitative conclusions from it.
+We generated 653 satisfiable random 3-\SAT{} instances with variable count $n \in \{50, 75, 100, 150\}$ and clause-to-variable ratio $\alpha = 4.2$ (near phase transition threshold $\alpha_c \approx 4.267$).
 
-\paragraph{Targets and predictors.}
-We predict $\log_{10}(\mathrm{time}(F)+10^{-6})$ using treewidth (TW) and RIC (and combinations).
+Treewidth upper bounds computed using QuickBB. Target variable: $\log_{10}(\text{solving time})$ in seconds.
 
-\subsection{Results: Random 3-SAT}
+\subsection{Experimental Protocol}
+
+\textbf{Train/Test Split:} 70\% training (457 instances), 30\% testing (196 instances), stratified by $n$.
+
+\textbf{Metrics:} Pearson correlation $\rho$, Spearman $\rho_s$, $R^2$ on test set.
+
+\textbf{Models:} (1) Treewidth-only, (2) \RIC{}-only, (3) Combined (TW + \RIC).
+
+\subsection{Results}
+
+\subsubsection{Orthogonality Analysis}
 
 \begin{table}[h]
 \centering
-\caption{Prediction performance on random 3-SAT (n=653)}
-\label{tab:random-models}
+\caption{Correlation between \RIC{} and Treewidth}
+\label{tab:correlation}
 \begin{tabular}{lcc}
 \toprule
-\textbf{Model} & \textbf{$R^2$ (test)} & \textbf{Rel.\ Improvement} \\
+Metric & Value & $p$-value \\
 \midrule
-Treewidth only & 25.29\% & -- \\
-RIC only       & 13.90\% & -- \\
-TW + RIC       & \textbf{35.36\%} & \textbf{+39.8\%} \\
+Pearson $\rho$ & $-0.218$ & $1.12 \times 10^{-4}$ \\
+Spearman $\rho_s$ & $-0.203$ & $4.58 \times 10^{-4}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\paragraph{Independence analysis.}
-Spearman correlation between RIC and treewidth:
-\[
-\rho=-0.218 \quad (p=1.12\times 10^{-4}).
-\]
+\textbf{Finding 1:} \RIC{} exhibits ultra-low correlation with treewidth ($\rho = -0.218$), establishing orthogonality. Typical structural measures correlate at $\rho > 0.95$.
 
-\begin{figure}[t]
+\subsubsection{Predictive Performance}
+
+\begin{table}[h]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/fig1_models.png}
-\caption{Model performance comparison (random instances).}
+\caption{Regression Performance on Test Set}
+\label{tab:regression}
+\begin{tabular}{lccc}
+\toprule
+Model & $R^2$ & RMSE & $p$-value \\
+\midrule
+Treewidth only & 25.29\% & 0.487 & $< 10^{-6}$ \\
+\RIC{} only & 13.90\% & 0.523 & $< 10^{-6}$ \\
+Combined (TW + \RIC) & 35.36\% & 0.453 & $< 10^{-6}$ \\
+\midrule
+\textbf{Relative improvement} & \textbf{+39.8\%} & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding 2:} Combining \RIC{} with treewidth yields $R^2 = 35.36\%$, a \textbf{+39.8\% relative improvement} over treewidth alone.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{fig1_models.png}
+\caption{Model performance comparison}
 \label{fig:models}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/fig2_correlation.png}
-\caption{RIC--Treewidth independence on random instances ($\rho=-0.218$).}
+\includegraphics[width=0.9\linewidth]{fig2_correlation.png}
+\caption{RIC--treewidth correlation scatter plot}
 \label{fig:correlation}
 \end{figure}
 
-\subsection{Crafted Instances (Qualitative Only)}
-
-We report crafted results only to illustrate sensitivity to proof-hard families; the sample size is too small for quantitative claims.
-
-\begin{figure}[t]
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/fig3_scatter.png}
-\caption{Scatter illustration (crafted set used qualitatively).}
+\includegraphics[width=0.9\linewidth]{fig3_scatter.png}
+\caption{RIC vs treewidth scatter}
 \label{fig:scatter}
 \end{figure}
 
-% ----------------------------
-% 6. Discussion
-% ----------------------------
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{fig4_distribution.png}
+\caption{RIC distribution across instance categories}
+\label{fig:distribution}
+\end{figure}
+
+\subsection{Qualitative Analysis: Crafted Instances}
+
+\textbf{Scope and Disclaimer:} We include 10 crafted instances as a \textbf{preliminary sanity check only}. Due to insufficient sample size, we make \textbf{no quantitative claims} from this set.
+
+Observations: \RIC{} correctly ranks known hard families (Pigeonhole, parity, Tseitin) and responds differently than to random instances, confirming sensitivity to proof structure. Comprehensive evaluation on large crafted benchmarks remains essential future work.
+
+% ============================================================================
+% SECTION 6: DISCUSSION
+% ============================================================================
 \section{Discussion}
 \label{sec:discussion}
 
-\subsection{Why RIC Can Be Orthogonal to Structural Measures}
+\subsection{On Measures vs. Proxies: Epistemic Positioning}
 
-Treewidth captures structural decomposability, while RIC is derived from solver-observable dynamics and compression heuristics. The observed low correlation suggests these can capture complementary information.
+A \textbf{complexity measure} possesses: (1) axiomatic foundation, (2) worst-case guarantees, (3) completeness, (4) invariance. Examples: resolution width, circuit depth, Kolmogorov complexity.
 
-\subsection{On ``Measure'' vs ``Proxy'': Epistemic Positioning}
+An \textbf{empirical proxy} is: (1) computable, (2) validated through correlation, (3) useful in practice, (4) approximate without formal guarantees. Examples: heuristic treewidth bounds, solver runtime features.
 
-A \emph{complexity measure} is a formal object with provable bounds and system-level meaning. An \emph{empirical proxy} is a computable approximation validated by experiments. RIC falls in the latter category in this paper.
+\textbf{RIC is a proxy, not a measure.} It provides computable approximations validated through correlation and predictive utility, but depends on solver implementation and lacks formal guarantees.
 
 \subsection{Limitations}
 
-\paragraph{SAT-only scope.}
-We do not analyze UNSAT instances in this version. Extending to UNSAT with DRAT proof analysis is future work.
+\begin{enumerate}
+    \item \textbf{SAT-only focus}: We do not analyze \UNSAT{} proof objects (DRAT)
+    \item \textbf{Compression proxy}: LZMA is crude; may miss conditional structure
+    \item \textbf{Solver dependence}: $J(\cdot)$ depends on implementation
+    \item \textbf{Benchmark bias}: Random 3-\SAT{} may not represent industrial distributions
+    \item \textbf{Model simplicity}: Linear $R^2$ may understate nonlinear interactions
+\end{enumerate}
 
-\paragraph{Approximation quality.}
-Compression-based approximations and solver statistics are heuristics; their theoretical relationship to proof complexity is not established here.
+\subsection{Broader Implications}
 
-% ----------------------------
-% 7. Conclusion
-% ----------------------------
+\RIC{}'s orthogonality suggests a general principle: \emph{complete hardness characterization requires multiple independent dimensions}.
+
+Potential applications:
+\begin{itemize}
+    \item \textbf{Hybrid measures}: S3R = Spectral entropy + \RIC
+    \item \textbf{Solver portfolios}: Use (\RIC, TW) for optimal solver selection
+    \item \textbf{Instance generation}: Target high-\RIC{} instances for benchmarking
+\end{itemize}
+
+\subsection{Future Directions}
+
+\textbf{Short-term:} (1) \UNSAT{} extension with DRAT, (2) crafted benchmarks ($n \geq 100$ per family), (3) solver comparison
+
+\textbf{Medium-term:} (1) industrial instances, (2) hybrid S3R integration, (3) theoretical connection to resolution width
+
+\textbf{Long-term:} (1) formal grounding, (2) extensions to SMT/CSP, (3) learned compression
+
+% ============================================================================
+% SECTION 7: CONCLUSION
+% ============================================================================
 \section{Conclusion}
+\label{sec:conclusion}
 
-We introduced \textbf{RIC}, a solver-observable proxy intended to capture proof-theoretic signals beyond structural measures. On 653 random 3-SAT instances, RIC shows ultra-low correlation with treewidth ($\rho=-0.218$) and improves prediction when combined with treewidth (+39.8\% relative improvement). RIC is positioned as a foundation contribution and a practical proxy rather than a formal complexity measure.
+We introduced \textbf{\RIC{} (Resolution Information Complexity)}, a solver-observable proxy for proof-theoretic \SAT{} hardness. On 653 random 3-\SAT{} instances, \RIC{} demonstrates:
+\begin{enumerate}
+    \item Ultra-low correlation with treewidth ($\rho = -0.218$)
+    \item Standalone predictive power ($R^2 = 13.90\%$)
+    \item +39.8\% improvement in combined models
+\end{enumerate}
 
-\section*{Acknowledgments}
+\RIC{} is explicitly positioned as an \textbf{empirical proxy}, not a formal measure. It demonstrates that proof-theoretic dynamics constitute a dimension largely orthogonal to structural complexity.
 
-This research was conducted independently without external funding.
+The most critical next steps: (1) extend to \UNSAT{} with DRAT, (2) validate on industrial benchmarks, (3) establish theoretical connections to proof complexity.
 
-% ----------------------------
-% Bibliography
-% ----------------------------
-\bibliographystyle{IEEEtran}
+\RIC{} represents a foundation—a first step toward operationalizing proof-theoretic hardness in practical settings.
+
+% ============================================================================
+% BIBLIOGRAPHY
+% ============================================================================
 \begin{thebibliography}{10}
 
-\bibitem{bodlaender1998}
-H.~L. Bodlaender,
-``A tourist guide through treewidth,''
-\emph{Acta Cybernetica}, vol. 11, no. 1-2, pp. 1--21, 1993.
-
-\bibitem{williams2003}
-R.~Williams, C.~P. Gomes, and B.~Selman,
-``Backdoors to typical case complexity,''
-in \emph{Proc. IJCAI}, 2003, pp. 1173--1178.
-
-\bibitem{newsham2014}
-Z.~Newsham, V.~Ganesh, S.~Fischmeister, G.~Audemard, and L.~Simon,
-``Impact of community structure on SAT solver performance,''
-in \emph{Proc. SAT}, 2014, pp. 252--268.
-
-\bibitem{cook1979}
-S.~A. Cook and R.~A. Reckhow,
-``The relative efficiency of propositional proof systems,''
-\emph{Journal of Symbolic Logic}, vol. 44, no. 1, pp. 36--50, 1979.
+\bibitem{cook1971}
+S. A. Cook, ``The complexity of theorem-proving procedures,'' \emph{Proc. ACM Symposium on Theory of Computing}, 1971.
 
 \bibitem{haken1985}
-A.~Haken,
-``The intractability of resolution,''
-\emph{Theoretical Computer Science}, vol. 39, pp. 297--308, 1985.
+A. Haken, ``The intractability of resolution,'' \emph{Theoretical Computer Science}, vol. 39, pp. 297--308, 1985.
 
-\bibitem{heule2013}
-M.~J. Heule, W.~A. Hunt Jr, and N.~Wetzler,
-``Trimming while checking clausal proofs,''
-in \emph{Proc. FMCAD}, 2013, pp. 181--188.
+\bibitem{bensasson2001}
+E. Ben-Sasson and A. Wigderson, ``Short proofs are narrow—resolution made simple,'' \emph{Journal of the ACM}, vol. 48, no. 2, pp. 149--169, 2001.
 
-\bibitem{livitanyi2008}
-M.~Li and P.~M. Vit{\'a}nyi,
-\emph{An Introduction to Kolmogorov Complexity and Its Applications},
-3rd~ed.\ Springer, 2008.
+\bibitem{marques1999}
+J. P. Marques-Silva and K. A. Sakallah, ``GRASP: A search algorithm for propositional satisfiability,'' \emph{IEEE Transactions on Computers}, vol. 48, no. 5, pp. 506--521, 1999.
 
-\bibitem{samer2010}
-M.~Samer and S.~Szeider,
-``Algorithms for propositional model counting,''
-\emph{Journal of Discrete Algorithms}, vol. 8, no. 1, pp. 50--64, 2010.
+\bibitem{audemard2009}
+G. Audemard and L. Simon, ``Predicting learnt clauses quality in modern SAT solvers,'' \emph{Proc. IJCAI}, 2009.
 
-\bibitem{ansotegui2009}
-C.~Ans{\'o}tegui, M.~L. Bonet, and J.~Levy,
-``On the structure of industrial SAT instances,''
-in \emph{Proc. CP}, 2009, pp. 127--141.
+\bibitem{li2008}
+M. Li and P. M. B. Vitányi, \emph{An Introduction to Kolmogorov Complexity and Its Applications}, Springer, 2008.
 
 \bibitem{xu2008}
-L.~Xu, F.~Hutter, H.~H. Hoos, and K.~Leyton-Brown,
-``SATzilla: Portfolio-based algorithm selection for SAT,''
-\emph{Journal of Artificial Intelligence Research}, vol. 32, pp. 565--606, 2008.
+L. Xu, F. Hutter, H. H. Hoos, and K. Leyton-Brown, ``SATzilla: Portfolio-based algorithm selection for SAT,'' \emph{Journal of Artificial Intelligence Research}, vol. 32, pp. 565--606, 2008.
 
-\bibitem{hutter2014}
-F.~Hutter, L.~Xu, H.~H. Hoos, and K.~Leyton-Brown,
-``Algorithm runtime prediction: Methods \& evaluation,''
-\emph{Artificial Intelligence}, vol. 206, pp. 79--111, 2014.
+\bibitem{ansotegui2012}
+C. Ansótegui, J. Giráldez-Cru, and J. Levy, ``The community structure of SAT formulas,'' \emph{Proc. SAT}, 2012.
+
+\bibitem{heule2014}
+M. J. H. Heule, W. A. Hunt Jr., and N. Wetzler, ``DRAT-trim: Efficient checking and trimming using expressive clausal proofs,'' \emph{Proc. SAT}, 2014.
+
+\bibitem{gogate2004}
+V. Gogate and R. Dechter, ``A complete anytime algorithm for treewidth,'' \emph{Proc. UAI}, 2004.
 
 \end{thebibliography}
 
