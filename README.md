@@ -2,7 +2,7 @@
 
 **Author:** Nizar Amama  
 **ORCID:** 0009-0004-6721-1117  
-**DOI (Zenodo):** https://doi.org/10.5281/zenodo.17925892  
+DOI (Zenodo, v2): https://doi.org/10.5281/zenodo.17968982
 
 ---
 
