@@ -3,10 +3,8 @@
 **Version 2.0 - December 2025**
 
 📄 **Official PDF (v2.0):**
-https://github.com/nizaramama/RIC-proof-theoretic-sat-hardness/blob/main/paper/RIC_v2.0_final.pdf
 
-
-[![DOI] https://doi.org/10.5281/zenodo.17970752
+[DOI] https://doi.org/10.5281/zenodo.17970752
 
 ---
 
@@ -68,6 +66,9 @@ Output: `main.pdf`
 ---
 
 ## What Changed in v2.0
+
+📄 **Paper (PDF):**
+https://github.com/nizaramama/RIC-proof-theoretic-sat-hardness/blob/main/paper/RIC_v2.0_final.pdf
 
 ### Major Updates
 
