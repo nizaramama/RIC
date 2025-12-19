@@ -65,6 +65,9 @@ Output: `main.pdf`
 
 ## What Changed in v2.0
 
+📄 **Paper (PDF):**
+https://github.com/nizaramama/RIC-proof-theoretic-sat-hardness/blob/main/paper/RIC_v2.0_final.pdf
+
 ### Major Updates
 
 **1. Positioning**
